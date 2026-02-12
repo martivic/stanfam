@@ -11,6 +11,7 @@ import {
   signOut,
   updateProfile,
 } from "firebase/auth";
+import Swal from "sweetalert2";
 
 import { auth } from "../lib/auth";
 
@@ -53,8 +54,10 @@ export default function Navbar() {
     }
     try {
       await signInWithEmailAndPassword(auth, loginEmail, loginPass);
+      Swal.fire({ icon: "success", title: "Signed in" });
       closeModal();
     } catch (err) {
+      Swal.fire({ icon: "error", title: "Login failed" });
       setError(err instanceof Error ? err.message : "Login failed.");
     }
   };
@@ -80,8 +83,10 @@ export default function Navbar() {
         await updateProfile(auth.currentUser, { displayName: signupName });
         setUserName(auth.currentUser.displayName ?? credential.user.email);
       }
+      Swal.fire({ icon: "success", title: "Account created" });
       closeModal();
     } catch (err) {
+      Swal.fire({ icon: "error", title: "Signup failed" });
       setError(err instanceof Error ? err.message : "Signup failed.");
     }
   };
@@ -90,7 +95,9 @@ export default function Navbar() {
     resetError();
     try {
       await signOut(auth);
+      Swal.fire({ icon: "success", title: "Signed out" });
     } catch (err) {
+      Swal.fire({ icon: "error", title: "Sign-out failed" });
       setError(err instanceof Error ? err.message : "Sign-out failed.");
     }
   };
@@ -99,8 +106,10 @@ export default function Navbar() {
     resetError();
     try {
       await signInWithPopup(auth, googleProvider);
+      Swal.fire({ icon: "success", title: "Signed in with Google" });
       closeModal();
     } catch (err) {
+      Swal.fire({ icon: "error", title: "Google sign-in failed" });
       setError(err instanceof Error ? err.message : "Google sign-in failed.");
     }
   };
@@ -135,20 +144,24 @@ export default function Navbar() {
         ))}
       </nav>
       <div className="navbar__actions">
-        <button
-          className="navbar__ghost"
-          type="button"
-          onClick={() => openModal("login")}
-        >
-          Login
-        </button>
-        <button
-          className="navbar__cta"
-          type="button"
-          onClick={() => openModal("signup")}
-        >
-          Get Started
-        </button>
+        {!isUserSignedIn() ? (
+          <>
+            <button
+              className="navbar__ghost"
+              type="button"
+              onClick={() => openModal("login")}
+            >
+              Login
+            </button>
+            <button
+              className="navbar__cta"
+              type="button"
+              onClick={() => openModal("signup")}
+            >
+              Get Started
+            </button>
+          </>
+        ) : null}
         <div id="user-container" className="navbar__user">
           {isUserSignedIn() && userName ? (
             <>

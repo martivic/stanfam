@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
+import Swal from "sweetalert2";
 
 import { auth } from "../../lib/auth";
 import {
   addMember,
+  closeOpportunity,
   createOpportunity,
   createFamilyIfMissing,
   getFamily,
@@ -100,6 +102,7 @@ export default function DashboardPage() {
     }
     await upsertFamily(uid, { familyName, bio, location, isPublic });
     setMessage("Family profile saved.");
+    Swal.fire({ icon: "success", title: "Profile saved" });
     setTimeout(() => setMessage(""), 2000);
   };
 
@@ -128,6 +131,7 @@ export default function DashboardPage() {
     setMemberBio("");
     setMemberPublic(true);
     setMessage("Member added.");
+    Swal.fire({ icon: "success", title: "Member added" });
     setTimeout(() => setMessage(""), 2000);
   };
 
@@ -163,7 +167,29 @@ export default function DashboardPage() {
     setOppType("job");
     setOppCapacity("1");
     setMessage("Opportunity posted.");
+    Swal.fire({ icon: "success", title: "Opportunity posted" });
     setTimeout(() => setMessage(""), 2000);
+    const loadedOpportunities = await listOpportunities(uid);
+    setOpportunities(
+      loadedOpportunities.map((opp) => ({
+        id: opp.id,
+        title: opp.title,
+        status: opp.status,
+        rate: opp.rate,
+        schedule: opp.schedule,
+        type: opp.type,
+        capacity: opp.capacity,
+      })),
+    );
+  };
+
+  const handleCloseOpportunity = async (oppId: string) => {
+    if (!uid) {
+      setMessage("Login required.");
+      return;
+    }
+    await closeOpportunity(uid, oppId);
+    Swal.fire({ icon: "success", title: "Opportunity closed" });
     const loadedOpportunities = await listOpportunities(uid);
     setOpportunities(
       loadedOpportunities.map((opp) => ({
@@ -348,6 +374,15 @@ export default function DashboardPage() {
                   {opp.schedule ? ` • ${opp.schedule}` : ""}
                   {opp.type === "event" ? ` • cap ${opp.capacity}` : ""}
                 </div>
+                {opp.status !== "closed" ? (
+                  <button
+                    type="button"
+                    className="list__action"
+                    onClick={() => handleCloseOpportunity(opp.id)}
+                  >
+                    Close
+                  </button>
+                ) : null}
               </div>
             ))}
           </div>

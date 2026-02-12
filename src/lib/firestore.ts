@@ -6,6 +6,7 @@ import {
   getDoc,
   getDocs,
   getFirestore,
+  limit,
   query,
   serverTimestamp,
   setDoc,
@@ -142,6 +143,20 @@ export async function listAllOpportunities() {
   }));
 }
 
+export async function listPublicMembers() {
+  const ref = collectionGroup(db, "members");
+  const q = query(ref, limit(25));
+  const snap = await getDocs(q);
+  return snap.docs
+    .map((docSnap) => ({
+      id: docSnap.id,
+      familyId: docSnap.ref.parent.parent?.id ?? "",
+      ...(docSnap.data() as MemberDoc),
+    }))
+    .filter((member) => member.isPublic)
+    .slice(0, 10);
+}
+
 export async function acceptOpportunity(
   ownerUid: string,
   opportunityId: string,
@@ -151,6 +166,14 @@ export async function acceptOpportunity(
   await updateDoc(ref, {
     status: "accepted",
     acceptedByUid,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+export async function closeOpportunity(ownerUid: string, opportunityId: string) {
+  const ref = doc(db, "families", ownerUid, "opportunities", opportunityId);
+  await updateDoc(ref, {
+    status: "closed",
     updatedAt: serverTimestamp(),
   });
 }

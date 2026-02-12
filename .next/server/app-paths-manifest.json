@@ -1,3 +1,6 @@
 {
-  "/page": "app/page.js"
+  "/page": "app/page.js",
+  "/directory/page": "app/directory/page.js",
+  "/family/[familyId]/page": "app/family/[familyId]/page.js",
+  "/dashboard/page": "app/dashboard/page.js"
 }
